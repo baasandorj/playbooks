@@ -1,5 +1,6 @@
 ---
-- name: Parsing "ip addr show" command result by cli_parse, netcommon.native and template file
+# Find more information about the ansible modules from this link https://docs.ansible.com/ansible/latest/network/user_guide/cli_parsing.html#cli-parsing
+- name: Parsing "ip addr show" command result by cli_parse, netcommon.native modules and template file
   hosts: localhost
   vars:
     ansible_connection: local
