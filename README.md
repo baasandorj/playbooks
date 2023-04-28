@@ -1,4 +1,4 @@
-# This repository for learning RedHAT Ansible Playbooks development and teaching mid and advanced level examples
+# This repository for helps learning RedHAT Ansible Playbooks development and teaching mid and advanced level examples
 
 ## Prerequisite and requirements for running these examples
 
