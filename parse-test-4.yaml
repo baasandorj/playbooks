@@ -1,0 +1,28 @@
+---
+- name: Parsing PS command result by using cli_parse custom template file
+  hosts: localhost
+  vars:
+    ansible_connection: local
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+
+  tasks:
+    - name: Run command and parse               # Task for running "ps -ef" command and parse its result by the cli_parse module
+      ansible.utils.cli_parse:
+        command: ps -ef
+        parser:
+          name: ansible.netcommon.native        # Using netcommon.native module for parsing
+          os: linux
+          template_path: templates/ps.yaml      # Using my custom developed template file
+        set_fact: results
+
+    - name: Print                               # Task for printing the commands result if using "-v" option
+      ansible.builtin.debug:                    # Ansible print module
+        var: results                            # printing results variable value
+        verbosity: 1                            # ansible-playbook parse-test-4.yaml -v
+
+    - name: Save file                           # Save the result into json file
+      ansible.builtin.copy:                     # Ansible copy module
+        content: "{{ results | to_nice_json }}" # Convert the results variable value's data into nice json style
+        dest: "./ps-ef-test.json"               # Result saving file
+        mode: "0755"                            # chmod 0755 ...
+...
