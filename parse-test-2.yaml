@@ -1,0 +1,33 @@
+---
+- name: Parse test by cli_parse and template
+  hosts: localhost
+  vars:
+    ansible_connection: local
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  tasks:
+    - name: Run command and parse
+      ansible.utils.cli_parse:
+        command: ip addr show
+        parser:
+          name: ansible.netcommon.native
+          os: linux
+        set_fact: interfaces
+    - name: Print
+      ansible.builtin.debug:
+        var: interfaces
+
+    - name: Select lo interface's IP address from the JSON results
+      ansible.builtin.debug:
+        msg: "{{ interfaces.lo.ip_address }}"
+
+    - name: Find main IP address
+      ansible.builtin.set_fact:
+        ip_address: "{{ item.ip_address }}"
+      when: item.state == "up"
+      with_items:
+        - "{{ interfaces | community.general.json_query('*') }}"
+
+    - name: Print main IP address
+      ansible.builtin.debug:
+        var: ip_address
+...
