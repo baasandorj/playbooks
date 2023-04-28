@@ -6,29 +6,31 @@
     ansible_connection: local
     ansible_python_interpreter: "{{ ansible_playbook_python }}"
   tasks:
-    - name: Run command and parse
+    - name: Run command and parse                                     # Task for running the command and parse its result
+      # Detail https://docs.ansible.com/ansible/latest/collections/ansible/utils/cli_parse_module.html#ansible-collections-ansible-utils-cli-parse-module
       ansible.utils.cli_parse:
-        command: ip addr show
+        command: ip addr show                                         # Run "ip addr show" command
         parser:
+          # Detail https://galaxy.ansible.com/ansible/netcommon?extIdCarryOver=true&sc_cid=701f2000001OH7YAAW
           name: ansible.netcommon.native
-          os: linux
-        set_fact: interfaces
-    - name: Print
+          os: linux                                                   # Uses templates/linux_ip_addr_show.yaml, OS + command + params + .yaml
+        set_fact: interfaces                                          # Stores the command results into interfaces variable as json type
+    - name: Print                                                     # Task for priting the command results
       ansible.builtin.debug:
         var: interfaces
 
-    - name: Select lo interface's IP address from the JSON results
+    - name: Select lo interface's IP address from the JSON results    # Task for getting a specific lan interface's ipaddress
       ansible.builtin.debug:
-        msg: "{{ interfaces.lo.ip_address }}"
+        msg: "{{ interfaces.lo.ip_address }}"                         # Getting specific json item
 
-    - name: Find main IP address
+    - name: Find main IP address                                      # Task for searching current connected interface's ip address
       ansible.builtin.set_fact:
-        ip_address: "{{ item.ip_address }}"
-      when: item.state == "up"
-      with_items:
+        ip_address: "{{ item.ip_address }}"                           # Get item interface's ipaddress field data
+      when: item.state == "up"                                        # Checks item interface's state is up
+      with_items:                                                     # looping the "interfaces" json data block by block and put it into item variable
         - "{{ interfaces | community.general.json_query('*') }}"
 
-    - name: Print main IP address
+    - name: Print main IP address                                     # Task for printing the found ip address
       ansible.builtin.debug:
         var: ip_address
 ...
