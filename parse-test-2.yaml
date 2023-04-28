@@ -1,5 +1,5 @@
 ---
-- name: Parse test by cli_parse and template
+- name: Parsing "ip addr show" command result by cli_parse, netcommon.native and template file
   hosts: localhost
   vars:
     ansible_connection: local
