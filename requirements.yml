@@ -1,0 +1,9 @@
+collections:
+  - name: ansible.utils
+    version: 2.9.0
+  
+  - name: ansible.netcommon 
+    version: 4.1.0
+
+  - name: community.general
+    version: 6.6.0
