@@ -15,7 +15,7 @@
           name: ansible.netcommon.native
           os: linux                                                   # Uses templates/linux_ip_addr_show.yaml, OS + command + params + .yaml
         set_fact: interfaces                                          # Stores the command results into interfaces variable as json type
-    - name: Print                                                     # Task for priting the command results
+    - name: Print                                                     # Task for printing the command results
       ansible.builtin.debug:
         var: interfaces
 
