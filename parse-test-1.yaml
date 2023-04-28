@@ -1,0 +1,74 @@
+---
+# Original code is here https://stackoverflow.com/questions/54452070/ansible-parse-stdout-lines-to-verify-values-of-a-particular-item
+- name: Search text from an ascii text table
+  hosts: localhost
+  gather_facts: false
+  ignore_errors: false
+  vars:
+    ansible_connection: local
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    search_name: "{{ search_text | mandatory }}"
+    test_var:
+      - "--------------------------"
+      - "| Name |Count|Score|State|"
+      - "--------------------------"
+      - "| Jake |5     |10  |CA   |"
+      - "| Mike |3     |15  |AR   |"
+      - "| Jane |3     |15  |IL   |"
+      - "--------------------------"
+      - " Total Scores: 2          "
+      - "--------------------------"
+  tasks:
+    - name: Main
+      block:
+
+        - name: When the search text is entered
+          when: search_text is defined
+          block:
+
+            - name: Pick up lines
+              ansible.builtin.set_fact:
+                important_lines: "{{ important_lines | default([]) + [item] }}"
+              when: item.split('|') | length == 6
+              with_items:
+                - "{{ test_var }}"
+
+            - name: Find
+              ansible.builtin.set_fact:
+                target_line: "{{ item.split('|') }}"
+              when: item | trim is search(search_name)
+              with_items:
+                - "{{ important_lines }}"
+
+            - name: Found the search text
+              when: target_line is defined and target_line[1] | trim == search_text
+              block:
+                - name: Get 3 parameters
+                  ansible.builtin.set_fact:
+                    attribute_count: "{{ target_line[2] | trim }}"
+                    attribute_score: "{{ target_line[3] | trim }}"
+                    attribute_state: "{{ target_line[4] | trim }}"
+
+                - name: Print results
+                  ansible.builtin.debug:
+                    msg: "name: {{ search_name }}, count: {{ attribute_count }}, score: {{ attribute_score }}, state: {{ attribute_state }}"
+
+            - name: Not found the search text
+              when: target_line is not defined or target_line[1] | trim != search_text
+              block:
+                - name: Print when errors
+                  ansible.builtin.debug:
+                    msg: "{{ search_name }} not found!"
+
+        - name: When the search text is NOT entered
+          when: search_text is not defined
+          block:
+            - name: Print guide
+              ansible.builtin.debug:
+                msg: Would you please run <ansible-playbook parse-test-1.yaml -e search_text='Enter search name'> command!
+
+      rescue:
+        - name: Print when errors
+          ansible.builtin.debug:
+            msg: 'I caught an error!'
+...
