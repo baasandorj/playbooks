@@ -1,0 +1,31 @@
+---
+# https://docs.ansible.com/ansible/latest/network/user_guide/cli_parsing.html#parsing-with-jc
+# https://github.com/kellyjonbrazil/jc/
+# ANSIBLE_STDOUT_CALLBACK=yaml ansible-playbook parse-test-3.yml
+- name: Parsing DIG command result by jc community developed ansible module 
+  hosts: localhost
+  connection: local
+
+  vars:
+    ansible_connection: local
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+
+  tasks:
+    - name: Run dig command                                                      # Task for running dig command against example.com
+      ansible.builtin.command: dig example.com                                   # Command running module
+      register: result                                                           # Keep its result into result variable as dictionary
+      changed_when: result.rc != 0                                               # Checking the command execution status
+
+    - name: Set fact                                                             # Task for creating myvar json type variable from the result var
+      ansible.builtin.set_fact:
+        myvar: "{{ result.stdout | string | community.general.jc('dig') }}"      # Calling JC module's DIG command part 
+
+    - name: Print all                                                            # Task for printing all json result as nice format
+      ansible.builtin.debug:
+        msg: "{{ myvar | ansible.builtin.to_nice_json }}"
+
+    - name: Print IP                                                             # Task for printing specific the json data's key value
+      ansible.builtin.debug:
+        msg: "The IP is: {{ myvar[0].answer[0].data }}"
+...
+
