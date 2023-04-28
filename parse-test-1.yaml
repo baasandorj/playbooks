@@ -1,14 +1,14 @@
 ---
 # Original code is here https://stackoverflow.com/questions/54452070/ansible-parse-stdout-lines-to-verify-values-of-a-particular-item
 - name: Search text from an ascii text table
-  hosts: localhost
-  gather_facts: false
-  ignore_errors: false
+  hosts: localhost                                                   # Run only on your localhost
+  gather_facts: false                                                # Does not collect any information of a host
+  ignore_errors: false                                               # Ignore any error
   vars:
-    ansible_connection: local
-    ansible_python_interpreter: "{{ ansible_playbook_python }}"
-    search_name: "{{ search_text | mandatory }}"
-    test_var:
+    ansible_connection: local                                        # Using local connection plugins
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"      # Using python in the ansible config
+    search_name: "{{ search_text | mandatory }}"                     # Declare search_name variable as mandatory
+    test_var:                                                        # Declare test_var for storing ascii text table data
       - "--------------------------"
       - "| Name |Count|Score|State|"
       - "--------------------------"
@@ -18,57 +18,58 @@
       - "--------------------------"
       - " Total Scores: 2          "
       - "--------------------------"
-  tasks:
-    - name: Main
-      block:
+  tasks:                                                             # Tasks begin
 
+    - name: Main                                                     # Main BLOCK
+      block:
+        # if search_text is having an value entered THEN ...
         - name: When the search text is entered
           when: search_text is defined
           block:
 
-            - name: Pick up lines
-              ansible.builtin.set_fact:
-                important_lines: "{{ important_lines | default([]) + [item] }}"
-              when: item.split('|') | length == 6
-              with_items:
+            - name: Pick up lines                                               # Task for reading the table data
+              ansible.builtin.set_fact:                                         # set_fact used for set a value into a variable
+                important_lines: "{{ important_lines | default([]) + [item] }}" # Adding current reading row (item) into important_lines dictionary
+              when: item.split('|') | length == 6                               # Check current reading row has 6 columns
+              with_items:                                                       # Read the table rows one by one and put it into item variable
                 - "{{ test_var }}"
 
-            - name: Find
+            - name: Find                                                        # Task for find the word
               ansible.builtin.set_fact:
-                target_line: "{{ item.split('|') }}"
-              when: item | trim is search(search_name)
-              with_items:
+                target_line: "{{ item.split('|') }}"                            # target_line will be array
+              when: item | trim is search(search_name)                          # if the finding word exists in the reading row
+              with_items:                                                       # Read the important_lines dictionary one by one and put it into item variable
                 - "{{ important_lines }}"
 
-            - name: Found the search text
-              when: target_line is defined and target_line[1] | trim == search_text
-              block:
-                - name: Get 3 parameters
+            - name: Found the search text                                           # Task for creating required parameters
+              when: target_line is defined and target_line[1] | trim == search_text # Check the exact the word is matching target_line[1]
+              block:                                                                # Then block
+                - name: Get 3 parameters                                               # Task for parsing 3 parameters
                   ansible.builtin.set_fact:
-                    attribute_count: "{{ target_line[2] | trim }}"
-                    attribute_score: "{{ target_line[3] | trim }}"
-                    attribute_state: "{{ target_line[4] | trim }}"
+                    attribute_count: "{{ target_line[2] | trim }}"                     # Create attribute_count variable and set target_line[2] as value
+                    attribute_score: "{{ target_line[3] | trim }}"                     # Create attribute_score variable and set target_line[3] as value
+                    attribute_state: "{{ target_line[4] | trim }}"                     # Create attribute_state variable and set target_line[4] as value
 
-                - name: Print results
+                - name: Print results                                                  # Task for printing the found results
                   ansible.builtin.debug:
                     msg: "name: {{ search_name }}, count: {{ attribute_count }}, score: {{ attribute_score }}, state: {{ attribute_state }}"
 
-            - name: Not found the search text
+            - name: Not found the search text                                       # Else block of the exact the word is matching target_line[1]
               when: target_line is not defined or target_line[1] | trim != search_text
               block:
-                - name: Print when errors
+                - name: Print when errors                                              # Task for printing not found message
                   ansible.builtin.debug:
                     msg: "{{ search_name }} not found!"
-
+        # ELSE if search_text is not defined ...
         - name: When the search text is NOT entered
-          when: search_text is not defined
+          when: search_text is not defined                                             # Did not enter any value into search_text
           block:
-            - name: Print guide
+            - name: Print guide                                                        # Task for printing usage guide
               ansible.builtin.debug:
                 msg: Would you please run <ansible-playbook parse-test-1.yaml -e search_text='Enter search name'> command!
 
-      rescue:
-        - name: Print when errors
+      rescue:                                                                          # Failed block
+        - name: Print when errors                                                      # Task for printing caught error message
           ansible.builtin.debug:
             msg: 'I caught an error!'
 ...
