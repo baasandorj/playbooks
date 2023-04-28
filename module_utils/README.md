@@ -3,6 +3,7 @@
 You need to create ansible.cfg and add following content into it.  
 
 ```Ansible
+# https://www.jeffgeerling.com/blog/2020/ansible-best-practices-using-project-local-collections-and-roles
 [defaults]
 
 # Chick-Fil-A would like a word...
