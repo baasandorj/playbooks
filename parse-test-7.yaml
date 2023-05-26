@@ -6,20 +6,26 @@
     command_line: "/root/yml/linux/getHostDetails.py"
 
   tasks:
-    - name: Run command on the remote delegated host
-      ansible.builtin.command: python3 "{{ command_line | quote }}" "{{ inventory_hostname }}"
-      register: command_result
-      delegate_to: "{{ delegate_to_host }}"
-      changed_when: command_result.rc != 0
+    - name: Main block
+      when: inventory_hostname is defined
+      block:
+        - name: Run command on the remote delegated host
+          ansible.builtin.command: python3 "{{ command_line | quote }}" "{{ inventory_hostname }}"
+          register: command_result
+          delegate_to: "{{ delegate_to_host }}"
+          changed_when: command_result.rc != 0
 
-    - name: Create tuples result by jinja from the string result
-      ansible.builtin.set_fact:
-        host_details: "[{% for val in command_result.stdout.split(',') %} {{ val.split('=') }} , {% endfor %}]"
+        - name: Then block
+          when: command_result.rc == 0
+          block:
+            - name: Create tuples result by jinja from the string result
+              ansible.builtin.set_fact:
+                host_details: "[{% for val in command_result.stdout.split(',') %} {{ val.split('=') }} , {% endfor %}]"
 
-    - name: Print the result
-      ansible.builtin.debug:
-        var: host_details
+            - name: Print the result
+              ansible.builtin.debug:
+                var: host_details
 
-    - name: Print the servername result
-      ansible.builtin.debug:
-        var: host_details[0][1]
+            - name: Print the servername result
+              ansible.builtin.debug:
+                var: host_details[0][1]
