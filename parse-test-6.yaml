@@ -1,0 +1,31 @@
+---
+- name: Running a command on delegated host and parsing its result
+  hosts: linux
+  vars:
+    delegate_to_host: "servera"
+    command_line: "/root/yml/linux/getHostDetails.py"
+
+  tasks:
+    - name: Run command on the remote delegated host
+      ansible.builtin.command: python3 "{{ command_line | quote }}" "{{ inventory_hostname }}"
+      register: command_result
+      delegate_to: "{{ delegate_to_host }}"
+      changed_when: command_result.rc != 0
+
+    - name: Create dictionary result from the string result
+      ansible.builtin.set_fact:
+        host_details: "{{ host_details|default({}) | combine ( { item.split('=')[0]: item.split('=')[1] } ) }}"
+      with_items:
+        "{{ command_result.stdout.split(',') }}"
+
+    - name: Print the result
+      ansible.builtin.debug:
+        var: host_details
+
+    - name: Print the dictionary keys
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      with_items:
+        "{{ host_details.keys() }}"
+...
+
