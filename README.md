@@ -6,7 +6,7 @@
 
 ## Examples table
 
-|Playbook Name|Usage|To learn knowledge|
+|Playbook Name|Description|To learn knowledge|
 |---|---|---|
 |[parse-test-1](https://github.com/baasandorj/playbooks/blob/master/parse-test-1.yaml)|Example of searching exact word text from an ascii text table result|You will be learn how to use block, if then else, loop, error control, and string commands.|
 |[parse-test-2](https://github.com/baasandorj/playbooks/blob/master/parse-test-2.yaml)|Parsing "ip addr show" command result by using Ansible special text parsing modules|You will be learn how to use cli_parse, netcommon.native modules, processing json and template file.|
